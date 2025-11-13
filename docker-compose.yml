@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: todoapp_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - todoapp_network
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: todoapp_api
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://admin:admin@mongodb:27017/
+      JWT_SECRET_KEY: your-secret-key-change-in-production
+      JWT_REFRESH_SECRET_KEY: your-refresh-secret-key-change-in-production
+    depends_on:
+      - mongodb
+    networks:
+      - todoapp_network
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+
+volumes:
+  mongodb_data:
+
+networks:
+  todoapp_network:
+    driver: bridge
